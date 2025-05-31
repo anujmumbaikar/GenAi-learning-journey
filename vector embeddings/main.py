@@ -1,11 +1,28 @@
 from google import genai
+import os
+from dotenv import load_dotenv
 
-client = genai.Client(api_key="AIzaSyCnf3GeJo5_iAfrPtvGyJtmekBrhjR9hKo")
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY")
 
-result = client.models.embed_content(
+
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY environment variable is not set.")
+client = genai.Client(api_key=api_key)
+
+try:
+
+    result = client.models.embed_content(
         model="gemini-embedding-exp-03-07",
         contents="dog chases cat",
-)
+    )
 
-print(result.embeddings)
-print(len(result.embeddings[0].values))
+    # Validate the response
+    if not result or not result.embeddings:
+        raise ValueError("No embeddings returned from the API.")
+
+    print(result.embeddings)
+    print(len(result.embeddings[0].values))
+
+except Exception as e:
+    print(f"An error occurred: {e}")
