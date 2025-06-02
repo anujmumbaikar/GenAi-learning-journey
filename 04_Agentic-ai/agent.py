@@ -6,6 +6,8 @@ import json
 import requests
 from datetime import datetime
 
+
+
 api_key = os.getenv("GEMINI_API_KEY");
 if not api_key:
     raise ValueError("Please set the GEMINI_API_KEY environment variable.")
@@ -14,6 +16,11 @@ client = OpenAI(
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
+
+
+
+#TOOLS -----------------------
+#e.g. read_from_db , insert_into_db etc.
 def get_weather(city: str):
     #we can call here API to get the weather
     url = f"https://wttr.in/{city}?format=%C+%t"
@@ -23,9 +30,18 @@ def get_weather(city: str):
     
     return "The weather in " + city + " is " + response.text
 
+def run_command(cmd: str):
+    result = os.system(cmd)
+    return result
+
 available_tools = {
     "get_weather": get_weather,
+    "run_command": run_command,
 }
+
+
+#so bsically make the various tools and make a framework to call the tools based on the user query
+#-----------------------------------
 
 
 SYSTEM_PROMPT = """
