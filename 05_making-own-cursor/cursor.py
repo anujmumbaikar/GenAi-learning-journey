@@ -5,7 +5,6 @@ import os
 import json
 import requests
 from datetime import datetime
-import subprocess
 
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
@@ -26,19 +25,25 @@ def run_command(cmd: str):
     result = os.system(cmd)
     return result
     
-def write_file(filepath:str, content:str):
+def write_file(filepath: str, content: str):
     try:
-        with open(filepath, 'w') as file:
+        # Ensure we're working from current directory
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(os.getcwd(), filepath)
+
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        with open(filepath, 'w', encoding='utf-8') as file:
             file.write(content)
-        return f"File '{filepath}' written successfully."
+            
+        return f"File written successfully to {filepath}"
     except Exception as e:
         return f"Error writing to file: {str(e)}"
 
-
 available_tools = {
-    "get_weather":get_weather,
-    "run_command":run_command,
-    "write_command":write_file
+    "get_weather": get_weather,
+    "run_command": run_command,
+    "write_file": write_file
 }
 
 SYSTEM_PROMPT = '''
@@ -99,12 +104,12 @@ Output: { "step": "planning", "content": "I will creating the root folder with n
 Output: { "step": "action", "function": "run_command", "input": "mkdir My-Todo-App && cd My-Todo-App" }
 Output: { "step": "observe", "output": "Command executed successfully." }
 
-Output:{ "step": "planning", "content": "I will initialize the Vite project inside the My-Todo-App using React template" }
-Output: { "step": "action", "function": "run_command", "input": "npm create vite@latest My-Todo-App --template react" }
-Output: { "step": "observe", "output": "Vite project initialized successfully." }
+Output: { "step": "plan", "content": "Next, initialize a Vite project inside the frontend folder using React template." }
+Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App && npm create vite@latest . -- --template react" }
+Output: { "step": "observe", "output": "Vite project created successfully with React template." }
 
 Output:{ "step": "planning", "content": "I will install the required dependencies for the Todo application" }
-Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App && npm install && npm install tailwindcss @tailwindcss/vite " }
+Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App && npm install" }
 Output: { "step": "observe", "output": "Dependencies installed successfully." }
 
 Output:{"step": "planning", "content": "Replace the default App.jsx with a basic Todo App with UI"}
@@ -112,14 +117,12 @@ Output: {
   "step": "action",
   "function": "write_file",
   "input": {
-    "filePath": "My-Todo-App/src/App.jsx",
+    "filePath": "src/App.jsx",
     "content": "import { useState } from 'react';\n\nfunction App() {\n  const [todos, setTodos] = useState([]);\n  const [input, setInput] = useState('');\n\n  const addTodo = () => {\n    if (input.trim()) {\n      setTodos([...todos, input]);\n      setInput('');\n    }\n  };\n\n  return (\n    <div>\n      <h1>Todo App</h1>\n      <input value={input} onChange={(e) => setInput(e.target.value)} />\n      <button onClick={addTodo}>Add</button>\n      <ul>\n        {todos.map((todo, index) => (\n          <li key={index}>{todo}</li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n\nexport default App;"
   }
 }
 Output:{"step": "observe", "output": "App.jsx file written successfully."}
-Output: { "step": "output", "content": "Your frontend setup for the todo app is complete. It includes a Vite project with a working todo list in App.jsx." }
 Output:{"step":"action","function":"run_command","input":"npm run dev", "content": "Starting the development server for the Todo application."}
-
 Output: { "step": "resolve", "content": "The Todo application has been successfully created with the provided specifications." }
 
 Output JSON format:
@@ -130,6 +133,7 @@ Output JSON format:
     "input":"The input parameter for the function",
 }
 '''
+
 messages = [
     {"role": "system", "content": SYSTEM_PROMPT},
 ]
