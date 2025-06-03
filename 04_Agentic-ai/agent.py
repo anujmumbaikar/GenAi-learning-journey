@@ -18,7 +18,6 @@ client = OpenAI(
 
 
 
-
 #TOOLS -----------------------
 #e.g. read_from_db , insert_into_db etc.
 def get_weather(city: str):
@@ -50,8 +49,8 @@ You work on start,plan,action,observer,resolve mode
 
 for the user input and available tools, you will plan the step-by-step execution and select the relevant tool from availabe tools.
 and based on tool selection ,you will perform the action to call the tool.
-
 wait for the observation and based on the observation from the tool , you will resolve the user query.
+
 Rules:
     - Follow the Output JSON Format.
     - Always perform one step at a time and wait for next input
@@ -78,7 +77,6 @@ Output JSON Format:
         "input": "The input parameter for the function",
     }}
 """
-
 
 messages = [
     {"role": "system", "content": SYSTEM_PROMPT},
