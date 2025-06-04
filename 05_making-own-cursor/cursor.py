@@ -160,9 +160,7 @@ while True:
 
             if tool_name in available_tools:
                 tool_func = available_tools[tool_name]
-
                 try:
-                    # Handle write_file with object input (filepath and content)
                     if tool_name == "write_file" and isinstance(tool_input, dict):
                         filepath = tool_input.get("filepath")
                         content = tool_input.get("content")
@@ -207,6 +205,4 @@ while True:
         if parsed_response.get("step") == "resolve":
             print("✅:", parsed_response.get("content"))
             break
-
-        # Handle any other steps
         print("🤖:", json.dumps(parsed_response, indent=2))
