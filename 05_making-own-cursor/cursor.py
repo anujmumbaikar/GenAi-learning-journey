@@ -27,21 +27,12 @@ def run_command(cmd: str):
     
 def write_file(filepath: str, content: str):
     try:
-        # Ensure we're working from current directory
-        if not os.path.isabs(filepath):
-            filepath = os.path.join(os.getcwd(), filepath)
-
-        # Create directory if it doesn't exist
-        directory = os.path.dirname(filepath)
-        if directory:
-            os.makedirs(directory, exist_ok=True)
-
-        with open(filepath, 'w', encoding='utf-8') as file:
-            file.write(content)
-            
-        return f"File written successfully to {filepath}"
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return f"✅ File written successfully to '{filepath}'"
     except Exception as e:
-        return f"Error writing to file: {str(e)}"
+        return f"❌ Error writing to file: {e}"
+
 
 available_tools = {
     "get_weather": get_weather,
