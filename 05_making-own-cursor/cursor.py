@@ -14,7 +14,7 @@ client = OpenAI(
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
-def get_weather(city:str):
+def get_weather(city: str):
     url = f"https://wttr.in/{city}?format=%C+%t"
     response = requests.get(url)
     if response.status_code != 200:
@@ -23,7 +23,7 @@ def get_weather(city:str):
 
 def run_command(cmd: str):
     result = os.system(cmd)
-    return result
+    return f"Command executed with exit code: {result}"
     
 def write_file(filepath: str, content: str):
     try:
@@ -31,7 +31,10 @@ def write_file(filepath: str, content: str):
         if not os.path.isabs(filepath):
             filepath = os.path.join(os.getcwd(), filepath)
 
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        # Create directory if it doesn't exist
+        directory = os.path.dirname(filepath)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
 
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(content)
@@ -71,7 +74,7 @@ Rules:
     - Follow the Output JSON Format.
     - Always perform one step at a time and wait for next input
     - Carefully analyse the user query
-    -always ask for project name
+    - Always ask for project name
 
 You work on the following steps-
 1.understanding
@@ -81,9 +84,9 @@ You work on the following steps-
 5.resolve
 
 Available tools:
-    -"get_weather": Takes a city name as an input and returns the current weather for the city
-    -"write_file":Take the filepath and content as a input,write the content to the file and return the success message.
-    -"run_command":Take MacOs commands as a string and execute the command and return the output after executing it.
+    - "get_weather": Takes a city name as an input and returns the current weather for the city
+    - "write_file": Takes filepath (string) and content (string) as separate parameters and writes content to file
+    - "run_command": Takes MacOs commands as a string and execute the command and return the output after executing it.
 
 Example:    
 User Query: What is the weather of new york?
@@ -95,48 +98,48 @@ Output: { "step": "resolve", "content": "The weather for new york seems to be 12
 
 User Query: I want to create a Todo application using React.
 Output: { "step": "understanding", "content": "The user wants to create a Todo application using React." }
-Output:{"step":"input","content":"Please provide the name of the Todo application project."}
-Output:{"step":"user","content":"My-Todo-App"}
-Output:{"step":"input","content":"Can you provide me if you want dark theme or light theme for the Todo application?"}
-Output:{"step":"user","content":"dark theme"}
+Output: { "step": "input", "content": "Please provide the name of the Todo application project." }
+Output: { "step": "user", "content": "My-Todo-App" }
+Output: { "step": "input", "content": "Can you provide me if you want dark theme or light theme for the Todo application?" }
+Output: { "step": "user", "content": "dark theme" }
 
-Output: { "step": "planning", "content": "I will creating the root folder with name My-Todo-App"}
+Output: { "step": "planning", "content": "I will create the root folder with name My-Todo-App" }
 Output: { "step": "action", "function": "run_command", "input": "mkdir My-Todo-App && cd My-Todo-App" }
 Output: { "step": "observe", "output": "Command executed successfully." }
 
-Output: { "step": "plan", "content": "Next, initialize a Vite project inside the frontend folder using React template." }
+Output: { "step": "planning", "content": "Next, initialize a Vite project inside the folder using React template." }
 Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App && npm create vite@latest . -- --template react" }
 Output: { "step": "observe", "output": "Vite project created successfully with React template." }
 
-Output:{ "step": "planning", "content": "I will install the required dependencies for the Todo application" }
+Output: { "step": "planning", "content": "I will install the required dependencies for the Todo application" }
 Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App && npm install" }
 Output: { "step": "observe", "output": "Dependencies installed successfully." }
 
-Output:{"step": "planning", "content": "Replace the default App.jsx with a basic Todo App with UI"}
-Output: {
-  "step": "action",
-  "function": "write_file",
-  "input": {
-    "filePath": "src/App.jsx",
-    "content": "import { useState } from 'react';\n\nfunction App() {\n  const [todos, setTodos] = useState([]);\n  const [input, setInput] = useState('');\n\n  const addTodo = () => {\n    if (input.trim()) {\n      setTodos([...todos, input]);\n      setInput('');\n    }\n  };\n\n  return (\n    <div>\n      <h1>Todo App</h1>\n      <input value={input} onChange={(e) => setInput(e.target.value)} />\n      <button onClick={addTodo}>Add</button>\n      <ul>\n        {todos.map((todo, index) => (\n          <li key={index}>{todo}</li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n\nexport default App;"
-  }
-}
-Output:{"step": "observe", "output": "App.jsx file written successfully."}
-Output:{"step":"action","function":"run_command","input":"npm run dev", "content": "Starting the development server for the Todo application."}
-Output: { "step": "resolve", "content": "The Todo application has been successfully created with the provided specifications." }
+Output: { "step": "planning", "content": "Replace the default App.jsx with a basic Todo App with dark theme UI" }
+Output: { "step": "action", "function": "write_file", "input": { "filepath": "My-Todo-App/src/App.jsx", "content": "import { useState } from 'react';\nimport './App.css';\n\nfunction App() {\n  const [todos, setTodos] = useState([]);\n  const [input, setInput] = useState('');\n\n  const addTodo = () => {\n    if (input.trim()) {\n      setTodos([...todos, { id: Date.now(), text: input, completed: false }]);\n      setInput('');\n    }\n  };\n\n  const toggleTodo = (id) => {\n    setTodos(todos.map(todo => \n      todo.id === id ? { ...todo, completed: !todo.completed } : todo\n    ));\n  };\n\n  const deleteTodo = (id) => {\n    setTodos(todos.filter(todo => todo.id !== id));\n  };\n\n  return (\n    <div className=\"app\">\n      <h1>Todo App</h1>\n      <div className=\"input-section\">\n        <input \n          value={input} \n          onChange={(e) => setInput(e.target.value)}\n          placeholder=\"Add a new todo...\"\n          onKeyPress={(e) => e.key === 'Enter' && addTodo()}\n        />\n        <button onClick={addTodo}>Add</button>\n      </div>\n      <ul className=\"todo-list\">\n        {todos.map((todo) => (\n          <li key={todo.id} className={todo.completed ? 'completed' : ''}>\n            <span onClick={() => toggleTodo(todo.id)}>{todo.text}</span>\n            <button onClick={() => deleteTodo(todo.id)}>Delete</button>\n          </li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n\nexport default App;" } }
+Output: { "step": "observe", "output": "App.jsx file written successfully." }
+
+Output: { "step": "planning", "content": "Add dark theme CSS styles to App.css" }
+Output: { "step": "action", "function": "write_file", "input": { "filepath": "My-Todo-App/src/App.css", "content": "body {\n  background-color: #1a1a1a;\n  color: #ffffff;\n  font-family: 'Arial', sans-serif;\n  margin: 0;\n  padding: 0;\n}\n\n.app {\n  max-width: 600px;\n  margin: 50px auto;\n  padding: 20px;\n  background-color: #2d2d2d;\n  border-radius: 10px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);\n}\n\nh1 {\n  text-align: center;\n  color: #4CAF50;\n  margin-bottom: 30px;\n}\n\n.input-section {\n  display: flex;\n  gap: 10px;\n  margin-bottom: 20px;\n}\n\ninput {\n  flex: 1;\n  padding: 12px;\n  border: 2px solid #444;\n  border-radius: 5px;\n  background-color: #3a3a3a;\n  color: #ffffff;\n  font-size: 16px;\n}\n\ninput:focus {\n  outline: none;\n  border-color: #4CAF50;\n}\n\nbutton {\n  padding: 12px 20px;\n  background-color: #4CAF50;\n  color: white;\n  border: none;\n  border-radius: 5px;\n  cursor: pointer;\n  font-size: 16px;\n}\n\nbutton:hover {\n  background-color: #45a049;\n}\n\n.todo-list {\n  list-style: none;\n  padding: 0;\n}\n\n.todo-list li {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 15px;\n  margin-bottom: 10px;\n  background-color: #3a3a3a;\n  border-radius: 5px;\n  border-left: 4px solid #4CAF50;\n}\n\n.todo-list li.completed {\n  opacity: 0.6;\n  text-decoration: line-through;\n  border-left-color: #888;\n}\n\n.todo-list li span {\n  cursor: pointer;\n  flex: 1;\n}\n\n.todo-list li button {\n  background-color: #f44336;\n  padding: 8px 12px;\n  font-size: 14px;\n}\n\n.todo-list li button:hover {\n  background-color: #da190b;\n}" } }
+Output: { "step": "observe", "output": "App.css file written successfully." }
+
+Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App && npm run dev" }
+Output: { "step": "observe", "output": "Development server started successfully." }
+Output: { "step": "resolve", "content": "The Todo application has been successfully created with dark theme. The project is now running on the development server." }
 
 Output JSON format:
 {
-    "step":"string",
-    "content":"string",
-    "function":"The name of the function if the step is action",
-    "input":"The input parameter for the function",
+    "step": "string",
+    "content": "string",
+    "function": "The name of the function if the step is action",
+    "input": "The input parameter for the function (string for single param, object for multiple params)"
 }
 '''
 
 messages = [
     {"role": "system", "content": SYSTEM_PROMPT},
 ]
+
 while True:
     query = input("Enter your query: ")
     messages.append({"role": "user", "content": query})
@@ -151,7 +154,11 @@ while True:
         parsed_response = json.loads(response.choices[0].message.content)
 
         if parsed_response.get("step") == "understanding":
-            print(" 🧠:", parsed_response.get("content"))
+            print("🧠:", parsed_response.get("content"))
+            continue
+
+        if parsed_response.get("step") == "planning":
+            print("📋:", parsed_response.get("content"))
             continue
 
         if parsed_response.get("step") == "action":
@@ -163,30 +170,57 @@ while True:
             if tool_name in available_tools:
                 tool_func = available_tools[tool_name]
 
-                # Handle write_file separately due to dict input
-                if tool_name == "write_file":
-                    filepath = tool_input.get("filePath")
-                    content = tool_input.get("content")
-                    tool_output = tool_func(filepath, content)
-                else:
-                    tool_output = tool_func(tool_input)
+                try:
+                    # Handle write_file with object input (filepath and content)
+                    if tool_name == "write_file" and isinstance(tool_input, dict):
+                        filepath = tool_input.get("filepath")
+                        content = tool_input.get("content")
+                        tool_output = tool_func(filepath, content)
+                    # Handle write_file with string inputs (backwards compatibility)
+                    elif tool_name == "write_file" and isinstance(tool_input, str):
+                        # This shouldn't happen with the new format, but keeping for safety
+                        tool_output = "Error: write_file requires both filepath and content"
+                    else:
+                        # For other tools (get_weather, run_command)
+                        tool_output = tool_func(tool_input)
 
-                # Add observation step
-                messages.append({
-                    "role": "assistant",
-                    "content": json.dumps({
-                        "step": "observe",
-                        "output": tool_output
+                    print("📤:", tool_output)
+                    
+                    # Add observation step
+                    messages.append({
+                        "role": "assistant",
+                        "content": json.dumps({
+                            "step": "observe",
+                            "output": str(tool_output)
+                        })
                     })
-                })
+                except Exception as e:
+                    error_msg = f"Error executing {tool_name}: {str(e)}"
+                    print("❌:", error_msg)
+                    messages.append({
+                        "role": "assistant",
+                        "content": json.dumps({
+                            "step": "observe",
+                            "output": error_msg
+                        })
+                    })
+                continue
+            else:
+                print("❌:", f"Tool '{tool_name}' not found")
                 continue
 
         if parsed_response.get("step") == "input":
-            user_input = input(parsed_response.get("content") + " ")
+            user_input = input("💭 " + parsed_response.get("content") + " ")
             messages.append({"role": "user", "content": user_input})
+            continue
+
+        if parsed_response.get("step") == "observe":
+            print("👀:", parsed_response.get("output"))
             continue
 
         if parsed_response.get("step") == "resolve":
             print("✅:", parsed_response.get("content"))
             break
 
+        # Handle any other steps
+        print("🤖:", json.dumps(parsed_response, indent=2))
