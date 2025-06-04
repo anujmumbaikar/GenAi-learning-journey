@@ -7,7 +7,6 @@ import requests
 from datetime import datetime
 
 
-
 api_key = os.getenv("GEMINI_API_KEY");
 if not api_key:
     raise ValueError("Please set the GEMINI_API_KEY environment variable.")
@@ -15,8 +14,6 @@ client = OpenAI(
     api_key=api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
-
-
 
 #TOOLS -----------------------
 #e.g. read_from_db , insert_into_db etc.

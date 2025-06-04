@@ -167,17 +167,12 @@ while True:
                         filepath = tool_input.get("filepath")
                         content = tool_input.get("content")
                         tool_output = tool_func(filepath, content)
-                    # Handle write_file with string inputs (backwards compatibility)
                     elif tool_name == "write_file" and isinstance(tool_input, str):
-                        # This shouldn't happen with the new format, but keeping for safety
                         tool_output = "Error: write_file requires both filepath and content"
                     else:
-                        # For other tools (get_weather, run_command)
                         tool_output = tool_func(tool_input)
 
                     print("📤:", tool_output)
-                    
-                    # Add observation step
                     messages.append({
                         "role": "assistant",
                         "content": json.dumps({
