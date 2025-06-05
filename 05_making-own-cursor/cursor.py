@@ -9,10 +9,11 @@ from datetime import datetime
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise ValueError("Please set the GEMINI_API_KEY environment variable.")
-client = OpenAI(
+gemini_client = OpenAI(
     api_key=api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
+openai_client = OpenAI()
 
 def get_weather(city: str):
     url = f"https://wttr.in/{city}?format=%C+%t"
@@ -32,12 +33,31 @@ def write_file(filepath: str, content: str):
         return f"✅ File written successfully to '{filepath}'"
     except Exception as e:
         return f"❌ Error writing to file: {e}"
+    
+def read_file(filepath: str):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return content
+    except Exception as e:
+        return f"❌ Error reading file: {e}"
+def install_package(package: str, manager: str = "npm"):
+    try:
+        if manager == "pip":
+            result = os.system(f"pip install {package}")
+        else:
+            result = os.system(f"npm install {package}")
+        return f"✅ Package '{package}' installed with {manager}. Exit code: {result}"
+    except Exception as e:
+        return f"❌ Error installing package: {e}"
 
 
 available_tools = {
     "get_weather": get_weather,
     "run_command": run_command,
-    "write_file": write_file
+    "write_file": write_file,
+    "read_file": read_file,
+    "install_package": install_package
 }
 
 SYSTEM_PROMPT = '''
@@ -66,6 +86,7 @@ Rules:
     - Always perform one step at a time and wait for next input
     - Carefully analyse the user query
     - Always ask for project name
+    - dont use tailwindcss for now or any other css framework keep vanilla css
 
 You work on the following steps-
 1.understanding
@@ -118,6 +139,76 @@ Output: { "step": "action", "function": "run_command", "input": "cd My-Todo-App 
 Output: { "step": "observe", "output": "Development server started successfully." }
 Output: { "step": "resolve", "content": "The Todo application has been successfully created with dark theme. The project is now running on the development server." }
 
+
+Example : 
+user Query: I want to create a full-stack todo app with separate frontend and backend folders.
+Output: { "step": "planning", "content": "The user wants to create a full-stack todo app with separate frontend and backend folders." }
+output:{ "step": "input", "content": "What would you like to name your project folder?" }
+output:{ step: "user", content: "todo-app" }
+output:{ "step": "input", "content": "Which CSS framework would you prefer for the frontend? (Tailwind / Bootstrap / None)" }
+output:{ step: "user", content: "tailwind" }
+output:{ "step": "input", "content": "Would you like a specific theme color for your frontend? (e.g., blue, emerald, slate)" }
+output:{ step: "user", content: "backgroung black and text while and add button red and del button green" }
+output:{ "step": "input", "content": "Would you like to use MongoDB for your backend database? (yes / no)" }
+output:{ step: "user", content: "yes" }
+
+Output: { "step": "planning", "content": "Start by creating the root folder with name todo-app and subfolders for frontend and backend." }
+Output: { "step": "action", "function": "run_command", "input": "mkdir todo-app && cd todo-app && mkdir frontend backend" }
+Output: { "step": "observe", "output": "Created folders: todo-app, todo-app/frontend, and todo-app/backend" }
+
+Output: { "step": "planning", "content": "Next, initialize a Vite project inside the frontend folder using React template." }
+Output: { "step": "action", "function": "run_command", "input": "cd todo-app/frontend && npm create vite@latest . -- --template react" }
+Output: { "step": "observe", "output": "Vite project created successfully with React template." }
+
+Output: { "step": "planning", "content": "Install required dependencies in the Vite frontend app." }
+Output: { "step": "action", "function": "run_command", "input": "cd todo-app/frontend && npm install" }
+Output: { "step": "observe", "output": "All npm packages installed." }
+
+Output: { "step": "planning", "content": "Replace the default App.jsx with a basic todo list UI." }
+Output: {
+  "step": "action",
+  "function": "write_file",
+  "input": {
+    "filePath": "todo-app/frontend/src/App.jsx",
+    "content": "import { useState } from 'react';\n\nfunction App() {\n  const [todos, setTodos] = useState([]);\n  const [input, setInput] = useState('');\n\n  const addTodo = () => {\n    if (input.trim()) {\n      setTodos([...todos, input]);\n      setInput('');\n    }\n  };\n\n  return (\n    <div>\n      <h1>Todo App</h1>\n      <input value={input} onChange={(e) => setInput(e.target.value)} />\n      <button onClick={addTodo}>Add</button>\n      <ul>\n        {todos.map((todo, index) => (\n          <li key={index}>{todo}</li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n\nexport default App;"
+  }
+}
+Output: { "step": "observe", "output": "App.jsx replaced with todo UI code." }
+Output: { "step": "resolve", "content": "Your frontend setup for the todo app is complete. It includes a Vite project with a working todo list in App.jsx." }
+
+Output: { "step": "planning", "content": "Next, set up the backend folder with Express and MongoDB." }
+Output: { "step": "action", "function": "run_command", "input": "cd todo-app/backend && npm init -y && npm install express mongoose cors bcrypt jsonwebtokens" }
+Output: { "step": "observe", "output": "Backend initialized with Express, Mongoose, CORS, Bcrypt, and JWT." }
+
+Output: { "step": "planning", "content": "Next, set up the backend folders" }
+Output: { "step": "action", "function": "run_command", "input": "cd todo-app/backend && mkdir models controllers db routes middleware && touch server.js" }
+Output: { "step": "observe", "output": "Backend folders and server.js file created successfully." }
+
+Output: { "step": "planning", "content": "Creating a Database Connection" }
+Output:{"step":"action","function":"run_command","input":"cd todo-app/backend/db && touch connection.js"}
+Output:{"step":"action","function":"write_file","input":{"filepath":"todo-app/backend/db/connection.js","content":"const mongoose = require('mongoose');\n\nconst connectDB = async () => {\n  try {\n    await mongoose.connect('mongodb://localhost:27017/todo-app', {\n      useNewUrlParser: true,\n      useUnifiedTopology: true,\n    });\n    console.log('MongoDB connected successfully');\n  } catch (error) {\n    console.error('MongoDB connection failed:', error);\n    process.exit(1);\n  }\n};\n\nmodule.exports = connectDB;"}}
+Output: { "step": "observe", "output": "Database connection file created successfully." }
+
+Output: { "step": "planning", "content": "Creating the Todo Model" }
+Output: {"step":"action","function":"run_command","input":"cd todo-app/backend/models && touch Todo.js"}
+Output: {"step":"action","function":"write_file","input":{"filepath":"todo-app/backend/models/Todo.js","content":"const mongoose = require('mongoose');\n\nconst todoSchema = new mongoose.Schema({\n  text: { type: String, required: true },\n  completed: { type: Boolean, default: false },\n}, { timestamps: true });\n\nconst Todo = mongoose.model('Todo', todoSchema);\n\nmodule.exports = Todo;"}}
+Output: { "step": "observe", "output": "Todo model created successfully." }
+
+Output: { "step": "planning", "content": "Creating the Todo Controller" }
+Output: {"step":"action","function":"run_command","input":"cd todo-app/backend/controllers && touch todoController.js"}
+Output: {"step":"action","function":"write_file","input":{"filepath":"todo-app/backend/controllers/todoController.js","content":"const Todo = require('../models/Todo');\n\nexports.getTodos = async (req, res) => {\n  try {\n    const todos = await Todo.find();\n    res.json(todos);\n  } catch (error) {\n    res.status(500).json({ message: 'Error fetching todos' });\n  }\n};\n\nexports.createTodo = async (req, res) => {\n  const { text } = req.body;\n  try {\n    const newTodo = new Todo({ text });\n    await newTodo.save();\n    res.status(201).json(newTodo);\n  } catch (error) {\n    res.status(500).json({ message: 'Error creating todo' });\n  }\n};"}}
+Output: { "step": "observe", "output": "Todo controller created successfully." }
+
+Output: { "step": "planning", "content": "Creating the Todo Routes" }
+Output: {"step":"action","function":"run_command","input":"cd todo-app/backend/routes && touch todoRoutes.js"}
+Output: {"step":"action","function":"write_file","input":{"filepath":"todo-app/backend/routes/todoRoutes.js","content":"const express = require('express');\nconst { getTodos, createTodo } = require('../controllers/todoController');\n\nconst router = express.Router();\n\nrouter.get('/', getTodos);\nrouter.post('/', createTodo);\n\nmodule.exports = router;"}}
+Output: { "step": "observe", "output": "Todo routes created successfully." }
+
+Output: { "step": "planning", "content": "Setting up the Express server in server.js" }
+Output: {"step":"action","function":"write_file","input":{"filepath":"todo-app/backend/server.js","content":"const express = require('express');\nconst cors = require('cors');\nconst connectDB = require('./db/connection');\nconst todoRoutes = require('./routes/todoRoutes');\n\nconst app = express();\nconst PORT = process.env.PORT || 5000;\n\n// Middleware\napp.use(cors());\napp.use(express.json());\n\n// Connect to MongoDB\nconnectDB();\n\n// Routes\napp.use('/api/todos', todoRoutes);\n\napp.listen(PORT, () => {\n  console.log(`Server running on port ${PORT}`);\n});"}}
+Output: { "step": "observe", "output": "Express server setup completed successfully." }
+Output: { "step": "resolve", "content": "Your full-stack todo app is ready with separate frontend and backend folders. The backend is set up with Express and MongoDB, and the frontend is a Vite React app." }
+
 Output JSON format:
 {
     "step": "string",
@@ -131,18 +222,42 @@ messages = [
     {"role": "system", "content": SYSTEM_PROMPT},
 ]
 
+def get_openAI_response(messages):
+    response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            response_format={"type": "json_object"},
+            messages=messages,
+            temperature=0.1,
+            max_tokens=1000
+        )
+    print("🤖 Using OpenAI GPT-4o-mini for action step")
+    return response
+
 while True:
     query = input("Enter your query: ")
     messages.append({"role": "user", "content": query})
 
     while True:
-        response = client.chat.completions.create(
-            model="gemini-2.0-flash",
-            response_format={"type": "json_object"},
-            messages=messages
-        )
-        messages.append({"role": "assistant", "content": response.choices[0].message.content})
-        parsed_response = json.loads(response.choices[0].message.content)
+        last_step = messages[-1]["content"]
+        try:
+            last_step_json = json.loads(last_step)
+            step_type = last_step_json.get("step")
+        except:
+            step_type = None
+            
+        if step_type == "action":
+            response = get_openAI_response(messages)
+            response_content = response.choices[0].message.content
+        else:
+            response = gemini_client.chat.completions.create(
+                model="gemini-2.0-flash",
+                response_format={"type": "json_object"},
+                messages=messages
+            )
+            response_content = response.choices[0].message.content
+
+        messages.append({"role": "assistant", "content": response_content})
+        parsed_response = json.loads(response_content)
 
         if parsed_response.get("step") == "understanding":
             print("🧠:", parsed_response.get("content"))
@@ -205,4 +320,5 @@ while True:
         if parsed_response.get("step") == "resolve":
             print("✅:", parsed_response.get("content"))
             break
+
         print("🤖:", json.dumps(parsed_response, indent=2))
