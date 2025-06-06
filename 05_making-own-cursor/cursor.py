@@ -9,12 +9,10 @@ from datetime import datetime
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise ValueError("Please set the GEMINI_API_KEY environment variable.")
-gemini_client = OpenAI(
+client = OpenAI(
     api_key=api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
-openai_client = OpenAI()
-
 def get_weather(city: str):
     url = f"https://wttr.in/{city}?format=%C+%t"
     response = requests.get(url)
@@ -221,43 +219,17 @@ Output JSON format:
 messages = [
     {"role": "system", "content": SYSTEM_PROMPT},
 ]
-
-def get_openAI_response(messages):
-    response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            response_format={"type": "json_object"},
-            messages=messages,
-            temperature=0.1,
-            max_tokens=1000
-        )
-    print("🤖 Using OpenAI GPT-4o-mini for action step")
-    return response
-
 while True:
     query = input("Enter your query: ")
     messages.append({"role": "user", "content": query})
-
     while True:
-        last_step = messages[-1]["content"]
-        try:
-            last_step_json = json.loads(last_step)
-            step_type = last_step_json.get("step")
-        except:
-            step_type = None
-            
-        if step_type == "action":
-            response = get_openAI_response(messages)
-            response_content = response.choices[0].message.content
-        else:
-            response = gemini_client.chat.completions.create(
-                model="gemini-2.0-flash",
-                response_format={"type": "json_object"},
-                messages=messages
-            )
-            response_content = response.choices[0].message.content
-
-        messages.append({"role": "assistant", "content": response_content})
-        parsed_response = json.loads(response_content)
+        response = client.chat.completions.create(
+            model="gemini-2.0-flash",
+            response_format={"type": "json_object"},
+            messages=messages
+        )
+        messages.append({"role": "assistant", "content": response.choices[0].message.content})
+        parsed_response = json.loads(response.choices[0].message.content)
 
         if parsed_response.get("step") == "understanding":
             print("🧠:", parsed_response.get("content"))
