@@ -1,9 +1,10 @@
+# flake8: noqa
 from dotenv import load_dotenv
 from langchain_qdrant import QdrantVectorStore
 from langchain_openai import OpenAIEmbeddings
 from openai import OpenAI
 import os
-import json
+
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
