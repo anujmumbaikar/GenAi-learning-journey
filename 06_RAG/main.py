@@ -1,3 +1,4 @@
+# flake8: noqa
 from langchain_community.document_loaders import PyPDFLoader
 from pathlib import Path  # built-in library
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -11,7 +12,7 @@ pdf_path = Path(__file__).parent / "WEB-PROGRAMMING.pdf"  # means current file's
 
 loader = PyPDFLoader(pdf_path)
 docs = loader.load()  # this will load the pdf file and return a list of documents
-# docs is a list of Document objects, each containing the text of a page in the PDF in array format
+# docs is a list of Document objects, each containing the text of a page in the PDF in array format.
 # print(docs[6])  # print the content of the a page index represents the page number
 
 
