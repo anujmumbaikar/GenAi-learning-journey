@@ -28,8 +28,8 @@ class State(TypedDict):
     # this is used to keep track of the messages in the conversation
 
 
-# llm = init_chat_model( model_provider="openai", model="gpt-4.1-nano")
-llm = init_chat_model( model_provider="google_genai", model="gemini-2.0-flash")
+llm = init_chat_model( model_provider="openai", model="gpt-4.1-nano")
+# llm = init_chat_model( model_provider="google_genai", model="gemini-2.0-flash")
 
 def chat_node(state:State):
     response = llm.invoke(state["messages"])
