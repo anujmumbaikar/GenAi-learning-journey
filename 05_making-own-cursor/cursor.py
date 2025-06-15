@@ -14,12 +14,6 @@ client = OpenAI(
     api_key=api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
-def get_weather(city: str):
-    url = f"https://wttr.in/{city}?format=%C+%t"
-    response = requests.get(url)
-    if response.status_code != 200:
-        return f"Error fetching weather data for {city}"
-    return "The weather in " + city + " is " + response.text
 
 def run_command(cmd: str):
     result = os.system(cmd)

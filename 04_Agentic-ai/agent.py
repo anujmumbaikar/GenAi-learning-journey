@@ -1,3 +1,4 @@
+# flake8: noqa
 from openai import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
@@ -104,6 +105,7 @@ while True:
                 tool_output = available_tools[tool_name](tool_input)
                 messages.append({"role": "assistant", "content": ""})
                 continue
+            
         if parsed_response.get("step") == "resolve":
             print("✅:", parsed_response.get("content"))
             break

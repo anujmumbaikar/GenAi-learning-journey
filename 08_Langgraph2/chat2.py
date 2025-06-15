@@ -25,8 +25,7 @@ openai_client = OpenAI()
 class State(TypedDict):
     messages:Annotated[list,add_messages] # here we use add_messages to add messages to the state
     # its in the form of a list of dictionaries and appended to the state in array form
-    # this is used to keep track of the messages in the conversation
-
+    # this is used to keep track of the messages in the conversation .
 
 llm = init_chat_model( model_provider="openai", model="gpt-4.1-nano")
 # llm = init_chat_model( model_provider="google_genai", model="gemini-2.0-flash")
@@ -44,7 +43,7 @@ graph_builder.add_node("chat_node",chat_node)
 graph_builder.add_edge(START,"chat_node")
 graph_builder.add_edge("chat_node",END)
 
-graph = graph_builder.compile();
+graph = graph_builder.compile();  #this is optional.
 
 def compile_graph_with_checkpointer(checkpointer):
     graph_with_checkpointer = graph_builder.compile(checkpointer=checkpointer)
