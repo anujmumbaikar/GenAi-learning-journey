@@ -46,7 +46,6 @@ def install_package(package: str, manager: str = "npm"):
 
 
 available_tools = {
-    "get_weather": get_weather,
     "run_command": run_command,
     "write_file": write_file,
     "read_file": read_file,
