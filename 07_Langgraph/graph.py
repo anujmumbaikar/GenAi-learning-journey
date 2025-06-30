@@ -15,6 +15,7 @@ client = OpenAI(
 )
 
 openai_client = OpenAI()
+
 class State(TypedDict):
     query:str
     llm_result:str | None

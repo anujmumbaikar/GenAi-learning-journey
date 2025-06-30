@@ -36,7 +36,6 @@ class State(TypedDict):
 llm = init_chat_model( model_provider="openai", model="gpt-4.1-nano") #this llm doesnt know about the tool
 llm_with_tools = llm.bind_tools(tools) # now this llm knows about the tool
 
-
 tool_node = ToolNode(tools=tools)
 def chat_node(state: State):
     message = llm_with_tools.invoke(state["messages"])
@@ -67,8 +66,7 @@ def main():
             {"role": "user", "content": query}
         ]
     }
-    for event in graph.stream(_state,stream_mode="values"):
-        if "messages" in event:
-            event["messages"][-1].pretty_print()
+    for event in graph.stream(_state):
+        print("Event", event)
     
 main()
